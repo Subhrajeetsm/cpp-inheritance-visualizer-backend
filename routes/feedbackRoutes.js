@@ -49,7 +49,7 @@ router.post("/", async (req, res) => {
     });
 
     /* =========================
-       SEND EMAIL
+       SEND CONFIRMATION EMAIL
     ========================= */
 
     const mailOptions = {
@@ -95,6 +95,7 @@ router.post("/", async (req, res) => {
             <a
               href="https://cpp-inheritance.vercel.app/"
               target="_blank"
+              rel="noopener noreferrer"
               style="color:#4f46e5;"
             >
               C++ Inheritance Visualizer
@@ -125,10 +126,6 @@ router.post("/", async (req, res) => {
 
           <p>
             Thanks for visiting! ❤️
-          </p>
-
-          <p>
-            Thanks again! ❤️
           </p>
 
           <hr />
@@ -162,7 +159,8 @@ router.post("/", async (req, res) => {
 
     res.status(500).json({
       success: false,
-      message: "Something went wrong while submitting feedback.",
+      message:
+        "Something went wrong while submitting feedback.",
     });
   }
 });
