@@ -1,6 +1,9 @@
 const dns = require("dns");
 
-dns.setServers(["8.8.8.8", "1.1.1.1"]);
+dns.setServers([
+  "8.8.8.8",
+  "1.1.1.1",
+]);
 
 const express = require("express");
 const mongoose = require("mongoose");
@@ -8,11 +11,13 @@ const cors = require("cors");
 
 require("dotenv").config();
 
-const feedbackRoutes = require("./routes/feedbackRoutes");
+const feedbackRoutes =
+  require("./routes/feedbackRoutes");
 
 const app = express();
 
-const PORT = process.env.PORT || 5000;
+const PORT =
+  process.env.PORT || 5000;
 
 /* =====================================================
    MIDDLEWARE
@@ -24,11 +29,13 @@ app.use(
   })
 );
 
-// Parse JSON request body
 app.use(express.json());
 
-// Parse form data
-app.use(express.urlencoded({ extended: true }));
+app.use(
+  express.urlencoded({
+    extended: true,
+  })
+);
 
 /* =====================================================
    HOME ROUTE
@@ -37,7 +44,8 @@ app.use(express.urlencoded({ extended: true }));
 app.get("/", (req, res) => {
   res.status(200).json({
     success: true,
-    message: "C++ Inheritance Visualizer Backend is running 🚀",
+    message:
+      "C++ Inheritance Visualizer Backend is running 🚀",
   });
 });
 
@@ -45,26 +53,42 @@ app.get("/", (req, res) => {
    FEEDBACK ROUTE
 ===================================================== */
 
-app.use("/api/feedback", feedbackRoutes);
+app.use(
+  "/api/feedback",
+  feedbackRoutes
+);
 
 /* =====================================================
-   MONGODB CONNECTION
+   MONGODB
 ===================================================== */
 
 mongoose
-  .connect(process.env.MONGO_URI, {
-    serverSelectionTimeoutMS: 10000,
-  })
+  .connect(
+    process.env.MONGO_URI,
+    {
+      serverSelectionTimeoutMS: 10000,
+    }
+  )
   .then(() => {
-    console.log("MongoDB connected successfully");
+
+    console.log(
+      "MongoDB connected successfully"
+    );
 
     app.listen(PORT, () => {
-      console.log(`Server running on port ${PORT}`);
+
+      console.log(
+        `Server running on port ${PORT}`
+      );
+
     });
+
   })
   .catch((error) => {
+
     console.error(
       "MongoDB connection failed:",
       error.message
     );
+
   });

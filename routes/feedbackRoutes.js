@@ -1,36 +1,16 @@
 const express = require("express");
-const nodemailer = require("nodemailer");
+const { Resend } = require("resend");
 
 const Feedback = require("../models/feedback");
 
 const router = express.Router();
 
 /* =====================================================
-   EMAIL CONFIGURATION
+   RESEND EMAIL CONFIGURATION
 ===================================================== */
 
-const transporter = nodemailer.createTransport({
-  host: "smtp.gmail.com",
-  port: 587,
-  secure: true,
+const resend = new Resend(process.env.RESEND_API_KEY);
 
-  auth: {
-    user: process.env.MAIL_USER,
-    pass: process.env.MAIL_PASS,
-  },
-});
-
-/* =====================================================
-   VERIFY EMAIL
-===================================================== */
-
-transporter.verify((error, success) => {
-  if (error) {
-    console.error("EMAIL CONFIG ERROR:", error);
-  } else {
-    console.log("Email server ready:", success);
-  }
-});
 /* =====================================================
    POST FEEDBACK
    POST /api/feedback
@@ -77,106 +57,135 @@ router.post("/", async (req, res) => {
     );
 
     /* =========================
-       SEND EMAIL
+       SEND EMAIL USING RESEND
     ========================= */
 
-    const mailOptions = {
-      from: `"C++ Inheritance Visualizer" <${process.env.MAIL_USER}>`,
+    const { data, error } =
+      await resend.emails.send({
+        from:
+          "C++ Inheritance Visualizer <onboarding@resend.dev>",
 
-      to: email,
+        to: [email],
 
-      subject:
-        "Thank you for your feedback ❤️ | Happy Indian Independence Day 🇮🇳",
+        subject:
+          "Thank you for your feedback ❤️ | Happy Indian Independence Day 🇮🇳",
 
-      html: `
-        <div style="
-          font-family: Arial, sans-serif;
-          max-width: 600px;
-          margin: auto;
-          padding: 30px;
-          background: #f8fafc;
-          border-radius: 12px;
-        ">
-
-          <h2 style="color: #4f46e5;">
-            Thank You, ${name}! 🎉
-          </h2>
-
-          <h1 style="text-align:center;">
-            🇮🇳
-          </h1>
-
-          <h3 style="text-align:center;">
-            Happy Indian Independence Day!
-          </h3>
-
-          <p>
-            Thank you for taking the time to give feedback
-            about our
-            <strong>C++ Inheritance Visualizer</strong>.
-          </p>
-
-          <p>
-            Visit our website:
-          </p>
-
-          <p>
-            <a
-              href="https://cpp-inheritance.vercel.app/"
-              target="_blank"
-              style="
-                color:#4f46e5;
-                text-decoration:none;
-              "
-            >
-              C++ Inheritance Visualizer
-            </a>
-          </p>
-
+        html: `
           <div style="
-            background: white;
-            padding: 20px;
-            border-radius: 10px;
-            margin: 20px 0;
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: auto;
+            padding: 30px;
+            background: #f8fafc;
+            border-radius: 12px;
           ">
 
+            <h2 style="
+              color: #4f46e5;
+            ">
+              Thank You, ${name}! 🎉
+            </h2>
+
+            <h1 style="
+              text-align:center;
+            ">
+              🇮🇳
+            </h1>
+
+            <h3 style="
+              text-align:center;
+            ">
+              Happy Indian Independence Day!
+            </h3>
+
             <p>
-              <strong>Your Feedback:</strong>
+              Thank you for taking the time to give
+              feedback about our
+              <strong>
+                C++ Inheritance Visualizer
+              </strong>.
             </p>
 
-            <p style="color: #475569;">
-              ${message}
+            <p>
+              Visit our website:
+            </p>
+
+            <p>
+              <a
+                href="https://cpp-inheritance.vercel.app/"
+                target="_blank"
+                style="
+                  color:#4f46e5;
+                  text-decoration:none;
+                "
+              >
+                C++ Inheritance Visualizer
+              </a>
+            </p>
+
+            <div style="
+              background: white;
+              padding: 20px;
+              border-radius: 10px;
+              margin: 20px 0;
+            ">
+
+              <p>
+                <strong>Your Feedback:</strong>
+              </p>
+
+              <p style="
+                color: #475569;
+              ">
+                ${message}
+              </p>
+
+            </div>
+
+            <p>
+              Your feedback helps us improve the
+              visualizer and make learning C++
+              inheritance easier.
+            </p>
+
+            <p>
+              Thanks for visiting! ❤️
+            </p>
+
+            <hr />
+
+            <p style="
+              font-size: 12px;
+              color: #64748b;
+            ">
+              C++ Inheritance Visualizer
             </p>
 
           </div>
+        `,
+      });
 
-          <p>
-            Your feedback helps us improve the visualizer
-            and make learning C++ inheritance easier.
-          </p>
+    /* =========================
+       RESEND ERROR
+    ========================= */
 
-          <p>
-            Thanks for visiting! ❤️
-          </p>
+    if (error) {
+      console.error(
+        "Resend Email Error:",
+        error
+      );
 
-          <hr />
-
-          <p style="
-            font-size: 12px;
-            color: #64748b;
-          ">
-            C++ Inheritance Visualizer
-          </p>
-
-        </div>
-      `,
-    };
-
-    await transporter.sendMail(mailOptions);
+      return res.status(500).json({
+        success: false,
+        message:
+          "Feedback was saved, but confirmation email could not be sent.",
+        feedbackId: feedback._id,
+      });
+    }
 
     console.log(
-      "Confirmation email sent to:",
-      email
+      "Confirmation email sent:",
+      data
     );
 
     /* =========================
@@ -188,6 +197,7 @@ router.post("/", async (req, res) => {
       message:
         "Feedback submitted successfully. Confirmation email sent.",
       feedbackId: feedback._id,
+      emailId: data?.id,
     });
 
   } catch (error) {
@@ -213,9 +223,12 @@ router.post("/", async (req, res) => {
 router.get("/", async (req, res) => {
   try {
 
-    const feedback = await Feedback
-      .find()
-      .sort({ createdAt: -1 });
+    const feedback =
+      await Feedback
+        .find()
+        .sort({
+          createdAt: -1,
+        });
 
     return res.status(200).json({
       success: true,
@@ -232,7 +245,8 @@ router.get("/", async (req, res) => {
 
     return res.status(500).json({
       success: false,
-      message: "Failed to fetch feedback.",
+      message:
+        "Failed to fetch feedback.",
     });
   }
 });
@@ -253,7 +267,8 @@ router.delete("/:id", async (req, res) => {
     if (!deletedFeedback) {
       return res.status(404).json({
         success: false,
-        message: "Feedback not found.",
+        message:
+          "Feedback not found.",
       });
     }
 
