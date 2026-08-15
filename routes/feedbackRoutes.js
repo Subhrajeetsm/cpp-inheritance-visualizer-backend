@@ -19,13 +19,35 @@ const transporter = nodemailer.createTransport({
 });
 
 /* =====================================================
+   VERIFY EMAIL CONFIGURATION
+===================================================== */
+
+transporter.verify((error, success) => {
+  if (error) {
+    console.error("EMAIL CONFIG ERROR:", error.message);
+  } else {
+    console.log("Email server ready:", success);
+  }
+});
+
+/* =====================================================
    POST FEEDBACK
    POST /api/feedback
 ===================================================== */
 
 router.post("/", async (req, res) => {
   try {
-    const { name, email, message } = req.body;
+    console.log("Request body:", req.body);
+
+    /* =========================
+       GET REQUEST DATA
+    ========================= */
+
+    const {
+      name,
+      email,
+      message,
+    } = req.body || {};
 
     /* =========================
        VALIDATION
@@ -48,8 +70,13 @@ router.post("/", async (req, res) => {
       message,
     });
 
+    console.log(
+      "Feedback saved:",
+      feedback._id
+    );
+
     /* =========================
-       SEND CONFIRMATION EMAIL
+       SEND EMAIL
     ========================= */
 
     const mailOptions = {
@@ -84,7 +111,8 @@ router.post("/", async (req, res) => {
 
           <p>
             Thank you for taking the time to give feedback
-            about our <strong>C++ Inheritance Visualizer</strong>.
+            about our
+            <strong>C++ Inheritance Visualizer</strong>.
           </p>
 
           <p>
@@ -95,8 +123,10 @@ router.post("/", async (req, res) => {
             <a
               href="https://cpp-inheritance.vercel.app/"
               target="_blank"
-              rel="noopener noreferrer"
-              style="color:#4f46e5;"
+              style="
+                color:#4f46e5;
+                text-decoration:none;
+              "
             >
               C++ Inheritance Visualizer
             </a>
@@ -143,11 +173,16 @@ router.post("/", async (req, res) => {
 
     await transporter.sendMail(mailOptions);
 
+    console.log(
+      "Confirmation email sent to:",
+      email
+    );
+
     /* =========================
        SUCCESS
     ========================= */
 
-    res.status(201).json({
+    return res.status(201).json({
       success: true,
       message:
         "Feedback submitted successfully. Confirmation email sent.",
@@ -155,9 +190,13 @@ router.post("/", async (req, res) => {
     });
 
   } catch (error) {
-    console.error("Feedback Error:", error);
 
-    res.status(500).json({
+    console.error(
+      "Feedback Error:",
+      error
+    );
+
+    return res.status(500).json({
       success: false,
       message:
         "Something went wrong while submitting feedback.",
@@ -172,20 +211,25 @@ router.post("/", async (req, res) => {
 
 router.get("/", async (req, res) => {
   try {
+
     const feedback = await Feedback
       .find()
       .sort({ createdAt: -1 });
 
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
       count: feedback.length,
       feedback,
     });
 
   } catch (error) {
-    console.error("Fetch Feedback Error:", error);
 
-    res.status(500).json({
+    console.error(
+      "Fetch Feedback Error:",
+      error
+    );
+
+    return res.status(500).json({
       success: false,
       message: "Failed to fetch feedback.",
     });
@@ -199,8 +243,11 @@ router.get("/", async (req, res) => {
 
 router.delete("/:id", async (req, res) => {
   try {
+
     const deletedFeedback =
-      await Feedback.findByIdAndDelete(req.params.id);
+      await Feedback.findByIdAndDelete(
+        req.params.id
+      );
 
     if (!deletedFeedback) {
       return res.status(404).json({
@@ -209,17 +256,23 @@ router.delete("/:id", async (req, res) => {
       });
     }
 
-    res.json({
+    return res.status(200).json({
       success: true,
-      message: "Feedback deleted successfully.",
+      message:
+        "Feedback deleted successfully.",
     });
 
   } catch (error) {
-    console.error("Delete Feedback Error:", error);
 
-    res.status(500).json({
+    console.error(
+      "Delete Feedback Error:",
+      error
+    );
+
+    return res.status(500).json({
       success: false,
-      message: "Failed to delete feedback.",
+      message:
+        "Failed to delete feedback.",
     });
   }
 });
