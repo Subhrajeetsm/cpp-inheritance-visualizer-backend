@@ -1,8 +1,7 @@
 const express = require("express");
 const nodemailer = require("nodemailer");
 
-const Feedback = require("../models/Feedback");
-
+const Feedback = require("../models/feedback");
 const router = express.Router();
 
 /* =====================================================
