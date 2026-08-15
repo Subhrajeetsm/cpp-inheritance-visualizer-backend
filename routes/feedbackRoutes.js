@@ -10,7 +10,9 @@ const router = express.Router();
 ===================================================== */
 
 const transporter = nodemailer.createTransport({
-  service: "gmail",
+  host: "smtp.gmail.com",
+  port: 465,
+  secure: true,
 
   auth: {
     user: process.env.MAIL_USER,
@@ -19,17 +21,16 @@ const transporter = nodemailer.createTransport({
 });
 
 /* =====================================================
-   VERIFY EMAIL CONFIGURATION
+   VERIFY EMAIL
 ===================================================== */
 
 transporter.verify((error, success) => {
   if (error) {
-    console.error("EMAIL CONFIG ERROR:", error.message);
+    console.error("EMAIL CONFIG ERROR:", error);
   } else {
     console.log("Email server ready:", success);
   }
 });
-
 /* =====================================================
    POST FEEDBACK
    POST /api/feedback
