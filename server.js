@@ -13,27 +13,34 @@ const app = express();
 
 const PORT = process.env.PORT || 5000;
 
+// =======================
 // Middleware
-app.use(
-  cors({
-    origin: "https://cpp-inheritance.vercel.app",
-  })
-);
+// =======================
 
+app.use(cors());
 app.use(express.json());
 
-// Home route
+// =======================
+// Home Route
+// =======================
+
 app.get("/", (req, res) => {
-  res.json({
+  res.status(200).json({
     success: true,
     message: "C++ Inheritance Visualizer Backend is running 🚀",
   });
 });
 
-// Feedback routes
+// =======================
+// Feedback Routes
+// =======================
+
 app.use("/api/feedback", feedbackRoutes);
 
-// MongoDB connection
+// =======================
+// MongoDB Connection
+// =======================
+
 mongoose
   .connect(process.env.MONGO_URI, {
     serverSelectionTimeoutMS: 10000,
@@ -42,7 +49,7 @@ mongoose
     console.log("MongoDB connected successfully");
 
     app.listen(PORT, () => {
-      console.log(`Server running on http://localhost:${PORT}`);
+      console.log(`Server running on port ${PORT}`);
     });
   })
   .catch((error) => {
