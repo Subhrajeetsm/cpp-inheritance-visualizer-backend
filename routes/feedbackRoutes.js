@@ -2,6 +2,7 @@ const express = require("express");
 const nodemailer = require("nodemailer");
 
 const Feedback = require("../models/feedback");
+
 const router = express.Router();
 
 /* =====================================================
@@ -18,7 +19,7 @@ const transporter = nodemailer.createTransport({
 });
 
 /* =====================================================
-   SEND FEEDBACK
+   POST FEEDBACK
    POST /api/feedback
 ===================================================== */
 
@@ -26,20 +27,20 @@ router.post("/", async (req, res) => {
   try {
     const { name, email, message } = req.body;
 
-    /* =================================================
+    /* =========================
        VALIDATION
-    ================================================= */
+    ========================= */
 
     if (!name || !email || !message) {
       return res.status(400).json({
         success: false,
-        message: "Please fill all required fields.",
+        message: "Please fill all fields.",
       });
     }
 
-    /* =================================================
-       SAVE FEEDBACK TO MONGODB
-    ================================================= */
+    /* =========================
+       SAVE TO MONGODB
+    ========================= */
 
     const feedback = await Feedback.create({
       name,
@@ -47,16 +48,17 @@ router.post("/", async (req, res) => {
       message,
     });
 
-    /* =================================================
-       SEND CONFIRMATION EMAIL
-    ================================================= */
+    /* =========================
+       SEND EMAIL
+    ========================= */
 
     const mailOptions = {
       from: `"C++ Inheritance Visualizer" <${process.env.MAIL_USER}>`,
 
       to: email,
 
-      subject: "Thank you for your feedback ❤️ happy indian independence day 🇮🇳",
+      subject:
+        "Thank you for your feedback ❤️ | Happy Indian Independence Day 🇮🇳",
 
       html: `
         <div style="
@@ -72,16 +74,31 @@ router.post("/", async (req, res) => {
             Thank You, ${name}! 🎉
           </h2>
 
-          <h2 style="color: #4f46e5;">
+          <h1 style="text-align:center;">
             🇮🇳
-          </h2>
+          </h1>
+
+          <h3 style="text-align:center;">
+            Happy Indian Independence Day!
+          </h3>
+
           <p>
-            Thank you for taking and visiting  the time to give feedback
+            Thank you for taking the time to give feedback
             about our <strong>C++ Inheritance Visualizer</strong>.
           </p>
 
-           <p>
-            https://cpp-inheritance.vercel.app/</strong>.
+          <p>
+            Visit our website:
+          </p>
+
+          <p>
+            <a
+              href="https://cpp-inheritance.vercel.app/"
+              target="_blank"
+              style="color:#4f46e5;"
+            >
+              C++ Inheritance Visualizer
+            </a>
           </p>
 
           <div style="
@@ -107,7 +124,10 @@ router.post("/", async (req, res) => {
           </p>
 
           <p>
-           Thanks for visit! ❤️
+            Thanks for visiting! ❤️
+          </p>
+
+          <p>
             Thanks again! ❤️
           </p>
 
@@ -126,14 +146,14 @@ router.post("/", async (req, res) => {
 
     await transporter.sendMail(mailOptions);
 
-    /* =================================================
-       SUCCESS RESPONSE
-    ================================================= */
+    /* =========================
+       SUCCESS
+    ========================= */
 
     res.status(201).json({
       success: true,
       message:
-        "Feedback submitted successfully. A confirmation email has been sent.",
+        "Feedback submitted successfully. Confirmation email sent.",
       feedbackId: feedback._id,
     });
 
