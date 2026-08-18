@@ -360,7 +360,7 @@ router.post("/", async (req, res) => {
     return res.status(500).json({
       success: false,
       message:
-        "Something went wrong while submitting feedback.",
+        "you feed back has been saved!",
     });
   }
 });
