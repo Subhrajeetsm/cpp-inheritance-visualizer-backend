@@ -1,89 +1,69 @@
-const dns = require("dns");
-
-dns.setServers([
-  "8.8.8.8",
-  "1.1.1.1",
-]);
+require("dotenv").config();
 
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
 
-require("dotenv").config();
-
+const authRoutes = require("./routes/authRoutes");
 const feedbackRoutes = require("./routes/feedbackRoutes");
 
 const app = express();
 
-const PORT = process.env.PORT || 5000;
-
-/* =====================================================
-   MIDDLEWARE
-===================================================== */
-
 app.use(
   cors({
-    origin: "*",
+    origin: "http://localhost:5173",
+    credentials: true,
   })
 );
 
 app.use(express.json());
 
-app.use(
-  express.urlencoded({
-    extended: true,
-  })
-);
+/* ===============================
+   DATABASE
+================================ */
 
-/* =====================================================
-   HOME ROUTE
-===================================================== */
+mongoose
+  .connect(process.env.MONGO_URI)
+  .then(() => {
+    console.log("MongoDB connected successfully");
+  })
+  .catch((error) => {
+    console.error(
+      "MongoDB connection error:",
+      error
+    );
+  });
+
+/* ===============================
+   ROUTES
+================================ */
 
 app.get("/", (req, res) => {
-  res.status(200).json({
-    success: true,
+  res.json({
     message:
-      "C++ Inheritance Visualizer Backend is running 🚀",
+      "Programming Learning Lab Backend Running",
   });
 });
 
-/* =====================================================
-   FEEDBACK ROUTES
-===================================================== */
+app.use(
+  "/api/auth",
+  authRoutes
+);
 
 app.use(
   "/api/feedback",
   feedbackRoutes
 );
 
-/* =====================================================
-   MONGODB CONNECTION
-===================================================== */
+/* ===============================
+   SERVER
+================================ */
 
-mongoose
-  .connect(process.env.MONGO_URI, {
-    serverSelectionTimeoutMS: 10000,
-  })
-  .then(() => {
-    console.log(
-      "MongoDB connected successfully"
-    );
+const PORT =
+  process.env.PORT || 5000;
 
-    /* =========================
-       START SERVER
-    ========================= */
-
-    app.listen(PORT, () => {
-      console.log(
-        `Server running on port ${PORT}`
-      );
-    });
-  })
-  .catch((error) => {
-    console.error(
-      "MongoDB connection failed:",
-      error.message
-    );
-
-    process.exit(1);
-  });
+app.listen(PORT, () => {
+  console.log(
+    `Server running on port ${PORT}`
+  );
+});

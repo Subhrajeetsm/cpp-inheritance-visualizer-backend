@@ -24,12 +24,12 @@ const userSchema = new mongoose.Schema(
       default: null,
     },
 
-    // Email verification
     isEmailVerified: {
       type: Boolean,
       default: false,
     },
 
+    // Email verification OTP
     emailOTP: {
       type: String,
       default: null,
@@ -40,7 +40,7 @@ const userSchema = new mongoose.Schema(
       default: null,
     },
 
-    // Password reset
+    // Password reset OTP
     resetOTP: {
       type: String,
       default: null,
